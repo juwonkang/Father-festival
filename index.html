@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>강호철 님의 환갑 잔치에 초대합니다</title>
+<meta name="description" content="강호철 님의 예순 번째 생신을 축하하는 자리에 귀한 걸음 해주세요.">
+
+<!-- 카카오톡 등으로 공유될 때 보여지는 미리보기 정보. images/hero.jpg 준비되면 og:image 경로도 확인해 주세요 -->
+<meta property="og:title" content="강호철 님의 환갑 잔치에 초대합니다">
+<meta property="og:description" content="2026년 11월 21일 토요일 낮 12시, 함께 축하해 주세요.">
+<meta property="og:image" content="images/hero.jpg">
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="frame">
+
+  <!-- ================= HERO ================= -->
+  <section class="panel panel--ink hero" id="hero">
+    <div class="photo-slot photo-slot--hero" data-filename="images/hero.jpg">
+      <img src="images/hero.jpg" alt="강호철 님의 사진"
+           onload="this.parentElement.classList.add('is-loaded')"
+           onerror="this.parentElement.classList.add('is-empty')">
+      <div class="photo-placeholder">
+        <span class="ph-mark">寫</span>
+        <p>대표 사진 자리<br><small>images/hero.jpg 로 교체해 주세요</small></p>
+      </div>
+      <div class="hero-veil"></div>
+    </div>
+
+    <div class="hero-content">
+      <p class="hero-lede">강호철 님의 예순 번째 생신,<br>귀한 걸음으로 함께해 주세요.</p>
+
+      <div class="hero-name-wrap">
+        <h1 class="hero-name">강호철</h1>
+        <span class="seal" aria-hidden="true">祝<br>壽</span>
+      </div>
+
+      <p class="hero-sub">환갑(還甲) 잔치</p>
+
+      <div class="hero-date" id="heroDate">2026년 11월 21일 토요일 · 낮 12시</div>
+    </div>
+
+    <button class="scroll-cue" id="scrollCue" aria-label="아래로 이동">
+      <svg width="18" height="28" viewBox="0 0 18 28" fill="none"><path d="M9 1V24M9 24L1 16M9 24L17 16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </section>
+
+  <div class="divider" aria-hidden="true">
+    <svg viewBox="0 0 400 24" preserveAspectRatio="none"><path d="M0 12C60 2 100 22 160 12C220 2 260 22 320 12C350 7 380 12 400 10" stroke="currentColor" stroke-width="1" fill="none"/></svg>
+  </div>
+
+  <!-- ================= 인사말 ================= -->
+  <section class="panel panel--paper greeting" id="greeting">
+    <p class="eyebrow-quiet">인사말</p>
+    <p class="greeting-text">
+      한 해 한 해를 정성으로 채워오신 아버지, 강호철 님께서<br>
+      어느덧 예순 번째 생신을 맞이하셨습니다.<br><br>
+      바쁘신 걸음이시겠지만 함께 자리해 주셔서<br>
+      아버지의 지난 시간과 앞으로의 시간에<br>
+      따뜻한 마음을 보태 주시면 감사하겠습니다.
+    </p>
+    <p class="greeting-sign">아들 강OO · 며느리 OOO<br>손녀 OOO · 손자 OOO 올림</p>
+  </section>
+
+  <div class="divider divider--paper" aria-hidden="true">
+    <svg viewBox="0 0 400 24" preserveAspectRatio="none"><path d="M0 12C60 2 100 22 160 12C220 2 260 22 320 12C350 7 380 12 400 10" stroke="currentColor" stroke-width="1" fill="none"/></svg>
+  </div>
+
+  <!-- ================= 일시 및 장소 ================= -->
+  <section class="panel panel--ink event" id="event">
+    <p class="eyebrow-quiet eyebrow-quiet--light">일시와 장소</p>
+
+    <div class="event-date-block">
+      <span class="event-day-count" id="ddayLabel">D-45</span>
+      <span class="event-date-full" id="eventDateFull">2026년 11월 21일 토요일</span>
+      <span class="event-time">낮 12시</span>
+    </div>
+
+    <button class="btn btn--outline-light" id="calendarBtn" type="button">캘린더에 일정 추가</button>
+
+    <div class="venue-block">
+      <p class="venue-name" id="venueName">그랜드컨벤션웨딩홀 (예시) · 3층 그랜드홀</p>
+      <p class="venue-address" id="venueAddress">서울특별시 강남구 테헤란로 000 (샘플 주소)</p>
+
+      <div class="venue-actions">
+        <a class="btn btn--outline-light" id="naverMapBtn" href="#" target="_blank" rel="noopener">네이버 지도</a>
+        <a class="btn btn--outline-light" id="kakaoMapBtn" href="#" target="_blank" rel="noopener">카카오맵</a>
+        <button class="btn btn--outline-light" id="copyAddrBtn" type="button">주소 복사</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider" aria-hidden="true">
+    <svg viewBox="0 0 400 24" preserveAspectRatio="none"><path d="M0 12C60 2 100 22 160 12C220 2 260 22 320 12C350 7 380 12 400 10" stroke="currentColor" stroke-width="1" fill="none"/></svg>
+  </div>
+
+  <!-- ================= 갤러리 ================= -->
+  <section class="panel panel--paper gallery" id="gallery">
+    <p class="eyebrow-quiet">함께한 순간들</p>
+
+    <div class="gallery-grid">
+      <div class="photo-slot photo-slot--wide" data-filename="images/gallery-1.jpg">
+        <img src="images/gallery-1.jpg" alt="가족 사진 1"
+             onload="this.parentElement.classList.add('is-loaded')"
+             onerror="this.parentElement.classList.add('is-empty')">
+        <div class="photo-placeholder"><span class="ph-mark">寫</span><p><small>gallery-1.jpg</small></p></div>
+      </div>
+      <div class="photo-slot" data-filename="images/gallery-2.jpg">
+        <img src="images/gallery-2.jpg" alt="가족 사진 2"
+             onload="this.parentElement.classList.add('is-loaded')"
+             onerror="this.parentElement.classList.add('is-empty')">
+        <div class="photo-placeholder"><span class="ph-mark">寫</span><p><small>gallery-2.jpg</small></p></div>
+      </div>
+      <div class="photo-slot" data-filename="images/gallery-3.jpg">
+        <img src="images/gallery-3.jpg" alt="가족 사진 3"
+             onload="this.parentElement.classList.add('is-loaded')"
+             onerror="this.parentElement.classList.add('is-empty')">
+        <div class="photo-placeholder"><span class="ph-mark">寫</span><p><small>gallery-3.jpg</small></p></div>
+      </div>
+      <div class="photo-slot" data-filename="images/gallery-4.jpg">
+        <img src="images/gallery-4.jpg" alt="가족 사진 4"
+             onload="this.parentElement.classList.add('is-loaded')"
+             onerror="this.parentElement.classList.add('is-empty')">
+        <div class="photo-placeholder"><span class="ph-mark">寫</span><p><small>gallery-4.jpg</small></p></div>
+      </div>
+      <div class="photo-slot" data-filename="images/gallery-5.jpg">
+        <img src="images/gallery-5.jpg" alt="가족 사진 5"
+             onload="this.parentElement.classList.add('is-loaded')"
+             onerror="this.parentElement.classList.add('is-empty')">
+        <div class="photo-placeholder"><span class="ph-mark">寫</span><p><small>gallery-5.jpg</small></p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider divider--paper" aria-hidden="true">
+    <svg viewBox="0 0 400 24" preserveAspectRatio="none"><path d="M0 12C60 2 100 22 160 12C220 2 260 22 320 12C350 7 380 12 400 10" stroke="currentColor" stroke-width="1" fill="none"/></svg>
+  </div>
+
+  <!-- ================= 마무리 ================= -->
+  <section class="panel panel--ink closing" id="closing">
+    <span class="seal seal--small" aria-hidden="true">祝<br>壽</span>
+    <p class="closing-text">
+      귀한 시간 내어 축하해 주시는<br>
+      모든 분들께 깊이 감사드립니다.
+    </p>
+    <button class="btn btn--ghost-light" id="shareBtn" type="button">청첩장 링크 복사하기</button>
+  </section>
+
+  <footer class="footer">
+    <p>© 2026 강호철 님의 환갑 잔치</p>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/script.js"></script>
+</body>
+</html>
