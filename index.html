@@ -1,166 +1,280 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>강호철 님의 환갑 잔치에 초대합니다</title>
-<meta name="description" content="강호철 님의 예순 번째 생신을 축하하는 자리에 귀한 걸음 해주세요.">
+/* =========================================================
+   여기 CONFIG 값만 바꾸면 날짜·장소·이름이 전체 페이지에 반영됩니다.
+   (지도 링크, 캘린더 파일, D-day 계산까지 자동으로 처리돼요)
+   ========================================================= */
+const CONFIG = {
+  personName: "강호철",
+  // ISO 8601 형식. 시간대는 한국(+09:00) 기준입니다.
+  eventDateISO: "2026-12-05T12:00:00+09:00",
+  eventDurationHours: 3,
+  eventDateDisplay: "2026년 12월 5일 토요일",
+  eventTimeDisplay: "낮 12시",
+  venueName: "그랜드컨벤션웨딩홀 (예시) · 3층 그랜드홀",
+  venueAddress: "서울특별시 강남구 테헤란로 000 (샘플 주소)",
+  // 축하 메시지(방명록) 기능용 Google Apps Script 웹앱 URL.
+  // apps-script/Code.gs를 배포한 뒤 나오는 주소를 여기에 넣어주세요.
+  // 비워두면 방명록은 "준비 중" 상태로만 표시되고 에러 없이 동작합니다.
+  guestbookApiUrl: "",
+};
 
-<!-- 카카오톡 등으로 공유될 때 보여지는 미리보기 정보. images/hero.jpg 준비되면 og:image 경로도 확인해 주세요 -->
-<meta property="og:title" content="강호철 님의 환갑 잔치에 초대합니다">
-<meta property="og:description" content="2026년 11월 21일 토요일 낮 12시, 함께 축하해 주세요.">
-<meta property="og:image" content="images/hero.jpg">
-<meta property="og:type" content="website">
+document.addEventListener("DOMContentLoaded", () => {
+  const eventDate = new Date(CONFIG.eventDateISO);
 
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap">
-<link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+  applyConfigText();
+  renderDday(eventDate);
+  wireCalendarButton(eventDate);
+  wireMapButtons();
+  wireCopyAddress();
+  wireCopyLink();
+  wireScrollCue();
+  wireGuestbook();
+});
 
-<div class="frame">
+/* ---------- CONFIG 값을 화면 텍스트에 반영 ---------- */
+function applyConfigText() {
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
 
-  <!-- ================= HERO ================= -->
-  <section class="panel panel--ink hero" id="hero">
-    <div class="photo-slot photo-slot--hero" data-filename="images/hero.jpg">
-      <img src="images/hero.jpg" alt="강호철 님의 사진"
-           onload="this.parentElement.classList.add('is-loaded')"
-           onerror="this.parentElement.classList.add('is-empty')">
-      <div class="photo-placeholder">
-        <span class="ph-mark">寫</span>
-        <p>대표 사진 자리<br><small>images/hero.jpg 로 교체해 주세요</small></p>
+  setText("heroDate", `${CONFIG.eventDateDisplay} · ${CONFIG.eventTimeDisplay}`);
+  setText("eventDateFull", CONFIG.eventDateDisplay);
+  setText("venueName", CONFIG.venueName);
+  setText("venueAddress", CONFIG.venueAddress);
+
+  const timeEl = document.querySelector(".event-time");
+  if (timeEl) timeEl.textContent = CONFIG.eventTimeDisplay;
+
+  document.querySelectorAll(".hero-name").forEach((el) => (el.textContent = CONFIG.personName));
+}
+
+/* ---------- D-day ---------- */
+function renderDday(eventDate) {
+  const label = document.getElementById("ddayLabel");
+  if (!label) return;
+
+  const today = new Date();
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const diff = Math.ceil(
+    (Date.UTC(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate()) -
+      Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())) /
+      msPerDay
+  );
+
+  if (diff > 0) label.textContent = `D-${diff}`;
+  else if (diff === 0) label.textContent = "D-DAY";
+  else label.textContent = "고마운 하루";
+}
+
+/* ---------- 캘린더에 추가 (.ics 다운로드) ---------- */
+function wireCalendarButton(eventDate) {
+  const btn = document.getElementById("calendarBtn");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+    const start = eventDate;
+    const end = new Date(start.getTime() + CONFIG.eventDurationHours * 60 * 60 * 1000);
+
+    const ics = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//hwangap-invitation//KR",
+      "BEGIN:VEVENT",
+      `UID:${Date.now()}@hwangap-invitation`,
+      `DTSTAMP:${toICSDate(new Date())}`,
+      `DTSTART:${toICSDate(start)}`,
+      `DTEND:${toICSDate(end)}`,
+      `SUMMARY:${CONFIG.personName} 님 환갑 잔치`,
+      `LOCATION:${CONFIG.venueName} ${CONFIG.venueAddress}`,
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ].join("\r\n");
+
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "환갑잔치.ics";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast("캘린더 파일을 내려받았어요");
+  });
+}
+
+function toICSDate(date) {
+  return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+}
+
+/* ---------- 지도 버튼 ---------- */
+function wireMapButtons() {
+  const q = encodeURIComponent(CONFIG.venueAddress);
+
+  const naver = document.getElementById("naverMapBtn");
+  if (naver) naver.href = `https://map.naver.com/v5/search/${q}`;
+
+  const kakao = document.getElementById("kakaoMapBtn");
+  if (kakao) kakao.href = `https://map.kakao.com/?q=${q}`;
+}
+
+/* ---------- 주소 복사 ---------- */
+function wireCopyAddress() {
+  const btn = document.getElementById("copyAddrBtn");
+  if (!btn) return;
+
+  btn.addEventListener("click", async () => {
+    const text = `${CONFIG.venueName}\n${CONFIG.venueAddress}`;
+    await copyText(text);
+    showToast("주소를 복사했어요");
+  });
+}
+
+/* ---------- 링크 복사 (공유하기) ---------- */
+function wireCopyLink() {
+  const btn = document.getElementById("shareBtn");
+  if (!btn) return;
+
+  btn.addEventListener("click", async () => {
+    await copyText(window.location.href);
+    showToast("초대장 링크를 복사했어요");
+  });
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (err) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  }
+}
+
+/* ---------- 스크롤 유도 버튼 ---------- */
+function wireScrollCue() {
+  const cue = document.getElementById("scrollCue");
+  const greeting = document.getElementById("greeting");
+  if (!cue || !greeting) return;
+
+  cue.addEventListener("click", () => {
+    greeting.scrollIntoView({ behavior: "smooth" });
+  });
+}
+
+/* ---------- 축하 메시지 (방명록) ---------- */
+function wireGuestbook() {
+  const form = document.getElementById("guestbookForm");
+  const submitBtn = document.getElementById("gbSubmitBtn");
+  if (!form) return;
+
+  if (!CONFIG.guestbookApiUrl) {
+    const statusEl = document.getElementById("guestbookStatus");
+    if (statusEl) statusEl.textContent = "축하 메시지 기능은 준비 중이에요.";
+    if (submitBtn) submitBtn.disabled = true;
+    return;
+  }
+
+  loadGuestbookMessages();
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const nameInput = document.getElementById("gbName");
+    const msgInput = document.getElementById("gbMessage");
+    const name = nameInput.value.trim();
+    const message = msgInput.value.trim();
+    if (!name || !message) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "등록 중…";
+
+    try {
+      await fetch(CONFIG.guestbookApiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ name, message }),
+      });
+      nameInput.value = "";
+      msgInput.value = "";
+      showToast("축하 메시지가 등록됐어요");
+      loadGuestbookMessages();
+    } catch (err) {
+      showToast("등록에 실패했어요. 다시 시도해 주세요");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "축하 메시지 남기기";
+    }
+  });
+}
+
+async function loadGuestbookMessages() {
+  const listEl = document.getElementById("guestbookList");
+  if (!listEl) return;
+  listEl.innerHTML = '<p class="guestbook-status">메시지를 불러오는 중이에요…</p>';
+
+  try {
+    const res = await fetch(CONFIG.guestbookApiUrl);
+    const data = await res.json();
+    const messages = (data && data.messages) || [];
+
+    if (messages.length === 0) {
+      listEl.innerHTML =
+        '<p class="guestbook-status">아직 남겨진 메시지가 없어요. 첫 번째 축하를 남겨보세요!</p>';
+      return;
+    }
+
+    listEl.innerHTML = messages.map(renderGuestbookItem).join("");
+  } catch (err) {
+    listEl.innerHTML = '<p class="guestbook-status">메시지를 불러오지 못했어요.</p>';
+  }
+}
+
+function renderGuestbookItem(item) {
+  const date = formatGuestbookDate(item.timestamp);
+  return `
+    <div class="guestbook-item">
+      <div class="guestbook-item-head">
+        <span class="guestbook-item-name">${escapeHtml(item.name)}</span>
+        <span class="guestbook-item-date">${date}</span>
       </div>
-      <div class="hero-veil"></div>
+      <p class="guestbook-item-message">${escapeHtml(item.message)}</p>
     </div>
+  `;
+}
 
-    <div class="hero-content">
-      <p class="hero-lede">강호철 님의 예순 번째 생신,<br>귀한 걸음으로 함께해 주세요.</p>
+function formatGuestbookDate(isoString) {
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return "";
+    return `${d.getMonth() + 1}.${d.getDate()}`;
+  } catch (err) {
+    return "";
+  }
+}
 
-      <div class="hero-name-wrap">
-        <h1 class="hero-name">강호철</h1>
-        <span class="seal" aria-hidden="true">祝<br>壽</span>
-      </div>
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
 
-      <p class="hero-sub">환갑(還甲) 잔치</p>
+/* ---------- 토스트 ---------- */
+let toastTimer = null;
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
 
-      <div class="hero-date" id="heroDate">2026년 11월 21일 토요일 · 낮 12시</div>
-    </div>
+  toast.textContent = message;
+  toast.classList.add("is-visible");
 
-    <button class="scroll-cue" id="scrollCue" aria-label="아래로 이동">
-      <svg width="18" height="28" viewBox="0 0 18 28" fill="none"><path d="M9 1V24M9 24L1 16M9 24L17 16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-  </section>
-
-  <div class="divider" aria-hidden="true">
-    <svg viewBox="0 0 400 24" preserveAspectRatio="none"><path d="M0 12C60 2 100 22 160 12C220 2 260 22 320 12C350 7 380 12 400 10" stroke="currentColor" stroke-width="1" fill="none"/></svg>
-  </div>
-
-  <!-- ================= 인사말 ================= -->
-  <section class="panel panel--paper greeting" id="greeting">
-    <p class="eyebrow-quiet">인사말</p>
-    <p class="greeting-text">
-      한 해 한 해를 정성으로 채워오신 아버지, 강호철 님께서<br>
-      어느덧 예순 번째 생신을 맞이하셨습니다.<br><br>
-      바쁘신 걸음이시겠지만 함께 자리해 주셔서<br>
-      아버지의 지난 시간과 앞으로의 시간에<br>
-      따뜻한 마음을 보태 주시면 감사하겠습니다.
-    </p>
-    <p class="greeting-sign">아들 강OO · 며느리 OOO<br>손녀 OOO · 손자 OOO 올림</p>
-  </section>
-
-  <div class="divider divider--paper" aria-hidden="true">
-    <svg viewBox="0 0 400 24" preserveAspectRatio="none"><path d="M0 12C60 2 100 22 160 12C220 2 260 22 320 12C350 7 380 12 400 10" stroke="currentColor" stroke-width="1" fill="none"/></svg>
-  </div>
-
-  <!-- ================= 일시 및 장소 ================= -->
-  <section class="panel panel--ink event" id="event">
-    <p class="eyebrow-quiet eyebrow-quiet--light">일시와 장소</p>
-
-    <div class="event-date-block">
-      <span class="event-day-count" id="ddayLabel">D-45</span>
-      <span class="event-date-full" id="eventDateFull">2026년 11월 21일 토요일</span>
-      <span class="event-time">낮 12시</span>
-    </div>
-
-    <button class="btn btn--outline-light" id="calendarBtn" type="button">캘린더에 일정 추가</button>
-
-    <div class="venue-block">
-      <p class="venue-name" id="venueName">그랜드컨벤션웨딩홀 (예시) · 3층 그랜드홀</p>
-      <p class="venue-address" id="venueAddress">서울특별시 강남구 테헤란로 000 (샘플 주소)</p>
-
-      <div class="venue-actions">
-        <a class="btn btn--outline-light" id="naverMapBtn" href="#" target="_blank" rel="noopener">네이버 지도</a>
-        <a class="btn btn--outline-light" id="kakaoMapBtn" href="#" target="_blank" rel="noopener">카카오맵</a>
-        <button class="btn btn--outline-light" id="copyAddrBtn" type="button">주소 복사</button>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider" aria-hidden="true">
-    <svg viewBox="0 0 400 24" preserveAspectRatio="none"><path d="M0 12C60 2 100 22 160 12C220 2 260 22 320 12C350 7 380 12 400 10" stroke="currentColor" stroke-width="1" fill="none"/></svg>
-  </div>
-
-  <!-- ================= 갤러리 ================= -->
-  <section class="panel panel--paper gallery" id="gallery">
-    <p class="eyebrow-quiet">함께한 순간들</p>
-
-    <div class="gallery-grid">
-      <div class="photo-slot photo-slot--wide" data-filename="images/gallery-1.jpg">
-        <img src="images/gallery-1.jpg" alt="가족 사진 1"
-             onload="this.parentElement.classList.add('is-loaded')"
-             onerror="this.parentElement.classList.add('is-empty')">
-        <div class="photo-placeholder"><span class="ph-mark">寫</span><p><small>gallery-1.jpg</small></p></div>
-      </div>
-      <div class="photo-slot" data-filename="images/gallery-2.jpg">
-        <img src="images/gallery-2.jpg" alt="가족 사진 2"
-             onload="this.parentElement.classList.add('is-loaded')"
-             onerror="this.parentElement.classList.add('is-empty')">
-        <div class="photo-placeholder"><span class="ph-mark">寫</span><p><small>gallery-2.jpg</small></p></div>
-      </div>
-      <div class="photo-slot" data-filename="images/gallery-3.jpg">
-        <img src="images/gallery-3.jpg" alt="가족 사진 3"
-             onload="this.parentElement.classList.add('is-loaded')"
-             onerror="this.parentElement.classList.add('is-empty')">
-        <div class="photo-placeholder"><span class="ph-mark">寫</span><p><small>gallery-3.jpg</small></p></div>
-      </div>
-      <div class="photo-slot" data-filename="images/gallery-4.jpg">
-        <img src="images/gallery-4.jpg" alt="가족 사진 4"
-             onload="this.parentElement.classList.add('is-loaded')"
-             onerror="this.parentElement.classList.add('is-empty')">
-        <div class="photo-placeholder"><span class="ph-mark">寫</span><p><small>gallery-4.jpg</small></p></div>
-      </div>
-      <div class="photo-slot" data-filename="images/gallery-5.jpg">
-        <img src="images/gallery-5.jpg" alt="가족 사진 5"
-             onload="this.parentElement.classList.add('is-loaded')"
-             onerror="this.parentElement.classList.add('is-empty')">
-        <div class="photo-placeholder"><span class="ph-mark">寫</span><p><small>gallery-5.jpg</small></p></div>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider divider--paper" aria-hidden="true">
-    <svg viewBox="0 0 400 24" preserveAspectRatio="none"><path d="M0 12C60 2 100 22 160 12C220 2 260 22 320 12C350 7 380 12 400 10" stroke="currentColor" stroke-width="1" fill="none"/></svg>
-  </div>
-
-  <!-- ================= 마무리 ================= -->
-  <section class="panel panel--ink closing" id="closing">
-    <span class="seal seal--small" aria-hidden="true">祝<br>壽</span>
-    <p class="closing-text">
-      귀한 시간 내어 축하해 주시는<br>
-      모든 분들께 깊이 감사드립니다.
-    </p>
-    <button class="btn btn--ghost-light" id="shareBtn" type="button">청첩장 링크 복사하기</button>
-  </section>
-
-  <footer class="footer">
-    <p>© 2026 강호철 님의 환갑 잔치</p>
-  </footer>
-
-</div>
-
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-<script src="js/script.js"></script>
-</body>
-</html>
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("is-visible");
+  }, 2200);
+}
